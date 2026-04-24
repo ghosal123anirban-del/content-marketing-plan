@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GlowSkin Co. – Content Marketing Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;background:#f0f4f8;color:#1a1a2e}
+.wrap{padding:20px;max-width:1150px;margin:0 auto}
+
+.topbar{background:linear-gradient(135deg,#1F4E79,#7B2D8B);color:#fff;border-radius:12px;padding:18px 24px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+.topbar h1{font-size:20px;font-weight:700}
+.topbar p{font-size:12px;opacity:.85;margin-top:3px}
+.tb-badge{font-size:11px;background:rgba(255,255,255,.2);padding:5px 14px;border-radius:20px;white-space:nowrap}
+
+.slicers{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:16px;background:#fff;border:1px solid #e0e7ef;border-radius:12px;padding:14px 18px;align-items:center;box-shadow:0 2px 8px rgba(0,0,0,.05)}
+.sl-label{font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.5px;font-weight:700;white-space:nowrap}
+.chip-group{display:flex;gap:6px;flex-wrap:wrap}
+.chip{font-size:12px;padding:5px 14px;border-radius:20px;border:1px solid #d0d9e4;background:#f5f8fc;color:#555;cursor:pointer;transition:all .15s;font-family:Arial,sans-serif}
+.chip:hover{border-color:#1F4E79;color:#1F4E79}
+.chip.active{background:#1F4E79;color:#fff;border-color:#1F4E79}
+.chip.edu.active{background:#1565C0;border-color:#1565C0}
+.chip.ins.active{background:#2E7D32;border-color:#2E7D32}
+.chip.eng.active{background:#E65100;border-color:#E65100}
+.chip.pro.active{background:#880E4F;border-color:#880E4F}
+.sep{width:1px;background:#e0e7ef;height:26px;margin:0 6px}
+.reset-btn{font-size:12px;padding:5px 14px;border-radius:20px;border:1px solid #d0d9e4;background:#fff;color:#666;cursor:pointer;font-family:Arial,sans-serif;transition:all .15s}
+.reset-btn:hover{background:#f5f8fc;border-color:#1F4E79;color:#1F4E79}
+
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+.kpi{background:#fff;border:1px solid #e0e7ef;border-radius:12px;padding:16px 18px;border-top:4px solid;box-shadow:0 2px 8px rgba(0,0,0,.04)}
+.kpi .lb{font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px;font-weight:700}
+.kpi .vl{font-size:26px;font-weight:700}
+.kpi .sb{font-size:11px;font-weight:600;padding:3px 8px;border-radius:10px;display:inline-block;margin-top:6px}
+.green{background:#e8f5e9;color:#2e7d32}
+.purple{background:#f3e5f5;color:#6a1b9a}
+
+.charts-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.cc{background:#fff;border:1px solid #e0e7ef;border-radius:12px;padding:18px;box-shadow:0 2px 8px rgba(0,0,0,.04)}
+.cc.full{grid-column:span 2}
+.ct{font-size:13px;font-weight:700;color:#1F4E79;margin-bottom:4px}
+.cs{font-size:11px;color:#999;margin-bottom:14px}
+.leg{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:10px;font-size:11px;color:#555}
+.leg span{display:flex;align-items:center;gap:5px}
+.ld{width:10px;height:10px;border-radius:2px;display:inline-block}
+
+/* Pillar bars */
+.pillar-section{background:#fff;border:1px solid #e0e7ef;border-radius:12px;padding:18px;margin-bottom:14px;box-shadow:0 2px 8px rgba(0,0,0,.04)}
+.pillar-row{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.p-label{font-size:12px;font-weight:700;width:100px;flex-shrink:0;text-align:right}
+.p-outer{flex:1;background:#f0f4f8;border-radius:6px;height:26px;overflow:hidden}
+.p-inner{height:100%;border-radius:6px;display:flex;align-items:center;padding-left:12px;font-size:11px;font-weight:700;color:#fff;transition:width .5s ease}
+.p-stats{font-size:11px;color:#666;width:160px;flex-shrink:0}
+
+/* Calendar grid */
+.cal-section{background:#fff;border:1px solid #e0e7ef;border-radius:12px;padding:18px;margin-bottom:14px;box-shadow:0 2px 8px rgba(0,0,0,.04)}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:12px}
+.cal-day-hdr{text-align:center;font-size:10px;font-weight:700;color:#888;padding:4px;text-transform:uppercase}
+.cal-day{min-height:70px;border-radius:6px;padding:4px;border:1px solid #e8eef4;background:#fafafa;font-size:9px;overflow:hidden}
+.cal-day.empty{background:transparent;border-color:transparent}
+.cal-day .day-num{font-size:11px;font-weight:700;color:#333;margin-bottom:3px}
+.cal-post{border-radius:3px;padding:2px 4px;margin-bottom:2px;font-size:9px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* Table */
+.table-card{background:#fff;border:1px solid #e0e7ef;border-radius:12px;padding:18px;margin-bottom:14px;box-shadow:0 2px 8px rgba(0,0,0,.04);overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:12px;min-width:700px}
+thead th{text-align:left;padding:10px 12px;font-size:11px;font-weight:700;color:#555;border-bottom:2px solid #e0e7ef;text-transform:uppercase;letter-spacing:.3px;background:#f8fafc;white-space:nowrap}
+tbody td{padding:9px 12px;border-bottom:1px solid #f0f4f8;color:#333}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:#f5f8fc}
+.badge{font-size:10px;padding:3px 9px;border-radius:10px;font-weight:700;display:inline-block;white-space:nowrap}
+.b-edu{background:#e3f2fd;color:#1565c0}
+.b-ins{background:#e8f5e9;color:#2e7d32}
+.b-eng{background:#fff3e0;color:#e65100}
+.b-pro{background:#fce4ec;color:#880e4f}
+.b-ig{background:#e8eaf6;color:#283593}
+.b-blog{background:#e0f2f1;color:#00695c}
+.b-email{background:#fff8e1;color:#f57f17}
+.b-yt{background:#ffebee;color:#c62828}
+.b-pub{background:#e8f5e9;color:#2e7d32}
+
+.no-data{text-align:center;padding:36px;color:#aaa;font-size:13px}
+.footer{text-align:center;font-size:11px;color:#aaa;padding:16px 0}
+
+@media(max-width:720px){
+  .kpi-grid{grid-template-columns:1fr 1fr}
+  .charts-row{grid-template-columns:1fr}
+  .cc.full{grid-column:span 1}
+  .cal-grid{grid-template-columns:repeat(4,1fr)}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div>
+    <h1>&#128200; Content Marketing Dashboard</h1>
+    <p>GlowSkin Co. &nbsp;|&nbsp; B2C Skincare Brand &nbsp;|&nbsp; Instagram · Blog · Email · YouTube Shorts</p>
+  </div>
+  <div class="tb-badge">April 2026</div>
+</div>
+
+<!-- SLICERS -->
+<div class="slicers">
+  <span class="sl-label">Channel</span>
+  <div class="chip-group" id="channel-chips">
+    <div class="chip active" data-val="all">All</div>
+    <div class="chip" data-val="Instagram">Instagram</div>
+    <div class="chip" data-val="Blog">Blog</div>
+    <div class="chip" data-val="Email">Email</div>
+    <div class="chip" data-val="YouTube">YouTube</div>
+  </div>
+  <div class="sep"></div>
+  <span class="sl-label">Pillar</span>
+  <div class="chip-group" id="pillar-chips">
+    <div class="chip active" data-val="all">All</div>
+    <div class="chip edu" data-val="Educate">Educate</div>
+    <div class="chip ins" data-val="Inspire">Inspire</div>
+    <div class="chip eng" data-val="Engage">Engage</div>
+    <div class="chip pro" data-val="Promote">Promote</div>
+  </div>
+  <div class="sep"></div>
+  <span class="sl-label">Week</span>
+  <div class="chip-group" id="week-chips">
+    <div class="chip active" data-val="all">All</div>
+    <div class="chip" data-val="1">Week 1</div>
+    <div class="chip" data-val="2">Week 2</div>
+    <div class="chip" data-val="3">Week 3</div>
+    <div class="chip" data-val="4">Week 4</div>
+  </div>
+  <div class="sep"></div>
+  <button class="reset-btn" id="reset-btn">&#8635; Reset Filters</button>
+</div>
+
+<!-- KPI CARDS -->
+<div class="kpi-grid">
+  <div class="kpi" style="border-top-color:#1F4E79">
+    <div class="lb">Total Reach</div>
+    <div class="vl" id="k-reach">—</div>
+    <div class="sb green" id="k-reach-s">—</div>
+  </div>
+  <div class="kpi" style="border-top-color:#7B2D8B">
+    <div class="lb">Total Posts</div>
+    <div class="vl" id="k-posts">—</div>
+    <div class="sb green" id="k-posts-s">—</div>
+  </div>
+  <div class="kpi" style="border-top-color:#ED7D31">
+    <div class="lb">Total Engagement</div>
+    <div class="vl" id="k-eng">—</div>
+    <div class="sb green" id="k-eng-s">—</div>
+  </div>
+  <div class="kpi" style="border-top-color:#70AD47">
+    <div class="lb">Total Clicks</div>
+    <div class="vl" id="k-clicks">—</div>
+    <div class="sb green" id="k-clicks-s">—</div>
+  </div>
+</div>
+
+<!-- CHARTS ROW 1 -->
+<div class="charts-row">
+  <div class="cc">
+    <div class="ct">Reach by channel</div>
+    <div class="cs">Total audience reached per platform</div>
+    <div style="position:relative;height:210px"><canvas id="c-channel"></canvas></div>
+  </div>
+  <div class="cc">
+    <div class="ct">Weekly Instagram reach</div>
+    <div class="cs">Week-by-week reach growth</div>
+    <div style="position:relative;height:210px"><canvas id="c-weekly"></canvas></div>
+  </div>
+</div>
+
+<!-- CHARTS ROW 2 -->
+<div class="charts-row">
+  <div class="cc">
+    <div class="ct">Content pillar distribution</div>
+    <div class="cs">Posts per pillar vs target ratio</div>
+    <div style="position:relative;height:200px"><canvas id="c-pillar"></canvas></div>
+  </div>
+  <div class="cc">
+    <div class="ct">Engagement by week</div>
+    <div class="cs">Instagram engagement trend</div>
+    <div style="position:relative;height:200px"><canvas id="c-engweek"></canvas></div>
+  </div>
+</div>
+
+<!-- PILLAR PERFORMANCE BARS -->
+<div class="pillar-section">
+  <div class="ct" style="margin-bottom:4px">Content pillar performance</div>
+  <div class="cs">Avg reach and engagement per pillar</div>
+  <div id="pillar-bars"></div>
+</div>
+
+<!-- CONTENT CALENDAR -->
+<div class="cal-section">
+  <div class="ct" style="margin-bottom:4px">Content calendar – April 2026</div>
+  <div class="cs" id="cal-sub">Color coded by pillar: <span style="background:#e3f2fd;color:#1565c0;padding:1px 6px;border-radius:4px;font-size:10px;font-weight:700">Educate</span> &nbsp;<span style="background:#e8f5e9;color:#2e7d32;padding:1px 6px;border-radius:4px;font-size:10px;font-weight:700">Inspire</span> &nbsp;<span style="background:#fff3e0;color:#e65100;padding:1px 6px;border-radius:4px;font-size:10px;font-weight:700">Engage</span> &nbsp;<span style="background:#fce4ec;color:#880e4f;padding:1px 6px;border-radius:4px;font-size:10px;font-weight:700">Promote</span></div>
+  <div class="cal-grid" id="cal-grid"></div>
+</div>
+
+<!-- CONTENT TABLE -->
+<div class="table-card">
+  <div class="ct" style="margin-bottom:14px">Full content breakdown</div>
+  <table>
+    <thead><tr>
+      <th>Week</th><th>Date</th><th>Channel</th><th>Content Title</th>
+      <th>Pillar</th><th>Format</th><th>Status</th>
+    </tr></thead>
+    <tbody id="content-tbody"></tbody>
+  </table>
+  <div class="no-data" id="no-data" style="display:none">No content matches the selected filters.</div>
+</div>
+
+<div class="footer">SkillInfyTech IT Solutions &nbsp;|&nbsp; Digital Marketing Internship – Project 6 &nbsp;|&nbsp; April 2026</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+const ALL_CONTENT = [
+  {week:1,date:"Apr 1", channel:"Instagram",title:"What is Double Cleansing? (Carousel)",      pillar:"Educate", format:"Carousel",       reach:9200, eng:820},
+  {week:1,date:"Apr 1", channel:"Blog",      title:"The Complete Beginner's Skincare Guide",   pillar:"Educate", format:"Long-form Article",reach:8400, eng:0},
+  {week:1,date:"Apr 2", channel:"Email",     title:"April Newsletter – Skin Foundations",      pillar:"Educate", format:"HTML Email",       reach:8200, eng:0},
+  {week:1,date:"Apr 3", channel:"Instagram", title:"Morning vs Night Routine – Reel",          pillar:"Educate", format:"Reel",             reach:7800, eng:610},
+  {week:1,date:"Apr 4", channel:"Blog",      title:"10 Skincare Mistakes You're Making",       pillar:"Educate", format:"List Article",     reach:4800, eng:0},
+  {week:1,date:"Apr 4", channel:"YouTube",   title:"How to Build a Skincare Routine",          pillar:"Educate", format:"YouTube Short",    reach:5200, eng:420},
+  {week:1,date:"Apr 5", channel:"Instagram", title:"Cleanser Types Explained (Carousel)",      pillar:"Educate", format:"Carousel",         reach:6400, eng:540},
+  {week:1,date:"Apr 6", channel:"YouTube",   title:"What Order to Apply Products?",            pillar:"Educate", format:"YouTube Short",    reach:4800, eng:360},
+  {week:1,date:"Apr 7", channel:"Instagram", title:"Sunday Skin Reset Routine (Reel)",         pillar:"Inspire", format:"Reel",             reach:8200, eng:720},
+  {week:2,date:"Apr 8", channel:"Instagram", title:"Niacinamide vs Vitamin C – Carousel",      pillar:"Educate", format:"Carousel",         reach:14200,eng:1480},
+  {week:2,date:"Apr 8", channel:"Blog",      title:"The Science of Niacinamide",               pillar:"Educate", format:"Long-form Article",reach:5400, eng:0},
+  {week:2,date:"Apr 9", channel:"Email",     title:"April Week 2 – Ingredient Spotlight",      pillar:"Educate", format:"HTML Email",       reach:8200, eng:0},
+  {week:2,date:"Apr 10",channel:"Instagram", title:"Before/After: 4 Weeks on Vitamin C",       pillar:"Inspire", format:"Image Post",       reach:9800, eng:880},
+  {week:2,date:"Apr 11",channel:"Blog",      title:"Hyaluronic Acid: Everything You Need",     pillar:"Educate", format:"Long-form Article",reach:5600, eng:0},
+  {week:2,date:"Apr 11",channel:"YouTube",   title:"Ingredient Check: What's in Our Serum?",  pillar:"Educate", format:"YouTube Short",    reach:5600, eng:460},
+  {week:2,date:"Apr 12",channel:"Instagram", title:"5 Ingredients to Avoid in Skincare",       pillar:"Educate", format:"Carousel",         reach:8800, eng:740},
+  {week:2,date:"Apr 13",channel:"YouTube",   title:"How Retinol Really Works (60 sec)",        pillar:"Educate", format:"YouTube Short",    reach:5200, eng:420},
+  {week:2,date:"Apr 14",channel:"Instagram", title:"Glow Up Monday – Customer Skin Journey",   pillar:"Inspire", format:"Reel",             reach:9600, eng:860},
+  {week:3,date:"Apr 15",channel:"Instagram", title:"Poll: Morning vs Night Routine?",          pillar:"Engage",  format:"Story Poll",       reach:7200, eng:1200},
+  {week:3,date:"Apr 15",channel:"Blog",      title:"Our Customers Share Skincare Journeys",    pillar:"Engage",  format:"UGC Article",      reach:4800, eng:0},
+  {week:3,date:"Apr 16",channel:"Email",     title:"April Week 3 – Community Highlights",      pillar:"Engage",  format:"HTML Email",       reach:8200, eng:0},
+  {week:3,date:"Apr 17",channel:"Instagram", title:"Q&A: Your Skincare Questions Answered",    pillar:"Engage",  format:"Live + Story",     reach:8600, eng:1100},
+  {week:3,date:"Apr 18",channel:"Blog",      title:"10 Real Customer Reviews",                 pillar:"Engage",  format:"Review Article",   reach:5200, eng:0},
+  {week:3,date:"Apr 18",channel:"YouTube",   title:"We Tried YOUR Skincare Recommendations",   pillar:"Engage",  format:"YouTube Short",    reach:6200, eng:520},
+  {week:3,date:"Apr 19",channel:"Instagram", title:"GIVEAWAY: Win a Full GlowSkin Kit!",       pillar:"Engage",  format:"Image Post",       reach:9800, eng:2100},
+  {week:3,date:"Apr 20",channel:"YouTube",   title:"Top 5 Customer Skin Transformations",      pillar:"Inspire", format:"YouTube Short",    reach:5800, eng:480},
+  {week:3,date:"Apr 21",channel:"Instagram", title:"User Spotlight – Glow Journey Feature",    pillar:"Engage",  format:"Reel",             reach:7600, eng:820},
+  {week:4,date:"Apr 22",channel:"Instagram", title:"Introducing GlowShield SPF 50 (Launch)",   pillar:"Promote", format:"Carousel",         reach:11800,eng:980},
+  {week:4,date:"Apr 22",channel:"Blog",      title:"Why You Need SPF Every Day – GlowShield", pillar:"Promote", format:"Article",           reach:6200, eng:0},
+  {week:4,date:"Apr 23",channel:"Email",     title:"April Week 4 – New Launch + Offer",        pillar:"Promote", format:"HTML Email",        reach:8200, eng:0},
+  {week:4,date:"Apr 24",channel:"Instagram", title:"GlowShield SPF 50 – Full Review Reel",     pillar:"Promote", format:"Reel",              reach:10400,eng:920},
+  {week:4,date:"Apr 25",channel:"Blog",      title:"GlowShield SPF 50 – Ingredient Breakdown", pillar:"Educate", format:"Article",          reach:4800, eng:0},
+  {week:4,date:"Apr 25",channel:"YouTube",   title:"GlowShield SPF 50 – Honest 1-Week Review", pillar:"Promote", format:"YouTube Short",   reach:9800, eng:820},
+  {week:4,date:"Apr 26",channel:"Instagram", title:"Use Code GLOW20 – 20% Off This Weekend",   pillar:"Promote", format:"Image Post",        reach:9200, eng:760},
+  {week:4,date:"Apr 27",channel:"YouTube",   title:"Top 3 Reasons to Switch to GlowShield",   pillar:"Promote", format:"YouTube Short",    reach:6400, eng:520},
+  {week:4,date:"Apr 28",channel:"Instagram", title:"Last Call: GLOW20 Expires Tonight!",       pillar:"Promote", format:"Story + Post",     reach:8400, eng:680},
+  {week:4,date:"Apr 29",channel:"Instagram", title:"Thank You – April Wrap Up",                pillar:"Engage",  format:"Reel",             reach:7200, eng:640},
+  {week:4,date:"Apr 30",channel:"Email",     title:"April Wrap-Up + May Preview",              pillar:"Engage",  format:"HTML Email",       reach:8200, eng:0},
+];
+
+const PILLAR_COLORS = {
+  Educate: {bg:"#e3f2fd", text:"#1565c0", bar:"#1565C0"},
+  Inspire: {bg:"#e8f5e9", text:"#2e7d32", bar:"#2E7D32"},
+  Engage:  {bg:"#fff3e0", text:"#e65100", bar:"#E65100"},
+  Promote: {bg:"#fce4ec", text:"#880e4f", bar:"#880E4F"},
+};
+const CH_COLORS = {
+  Instagram:"#E91E8C", Blog:"#00897B", Email:"#F57F17", YouTube:"#C62828"
+};
+const CH_BADGE = {
+  Instagram:"b-ig", Blog:"b-blog", Email:"b-email", YouTube:"b-yt"
+};
+const PIL_BADGE = {
+  Educate:"b-edu", Inspire:"b-ins", Engage:"b-eng", Promote:"b-pro"
+};
+
+let selChannel="all", selPillar="all", selWeek="all";
+const charts={};
+
+function fmt(n){return n>=1000?(Math.round(n/100)/10)+"k":Math.round(n).toLocaleString()}
+function getFiltered(){
+  return ALL_CONTENT.filter(d=>{
+    if(selChannel!=="all" && !d.channel.includes(selChannel)) return false;
+    if(selPillar!=="all" && d.pillar!==selPillar) return false;
+    if(selWeek!=="all" && d.week!==+selWeek) return false;
+    return true;
+  });
+}
+function mkChart(id,type,data,opts={}){
+  if(charts[id]) charts[id].destroy();
+  charts[id]=new Chart(document.getElementById(id),{type,data,options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},...opts}});
+}
+const sc={scales:{y:{beginAtZero:true,grid:{color:"rgba(0,0,0,.06)"}},x:{grid:{display:false},ticks:{maxRotation:20}}}};
+
+function update(){
+  const f = getFiltered();
+  const totReach = f.reduce((a,b)=>a+b.reach,0);
+  const totEng   = f.reduce((a,b)=>a+b.eng,0);
+  const totClicks= Math.round(totReach*0.083);
+  const totPosts = f.length;
+
+  document.getElementById("k-reach").textContent  = fmt(totReach);
+  document.getElementById("k-reach-s").textContent= "Total audience reached";
+  document.getElementById("k-posts").textContent  = totPosts;
+  document.getElementById("k-posts-s").textContent= "Pieces published";
+  document.getElementById("k-eng").textContent    = fmt(totEng);
+  document.getElementById("k-eng-s").textContent  = totReach>0?((totEng/totReach)*100).toFixed(1)+"% eng. rate":"—";
+  document.getElementById("k-clicks").textContent = fmt(totClicks);
+  document.getElementById("k-clicks-s").textContent= "Estimated website visits";
+
+  // Channel reach chart
+  const channels=["Instagram","Blog","Email","YouTube"];
+  const chReach = channels.map(ch=>f.filter(d=>d.channel.includes(ch)).reduce((a,b)=>a+b.reach,0));
+  mkChart("c-channel","bar",{labels:channels,datasets:[{data:chReach,backgroundColor:channels.map(c=>CH_COLORS[c]),borderRadius:6}]},{...sc});
+
+  // Weekly reach
+  const weeks=[1,2,3,4];
+  const wkReach=weeks.map(w=>f.filter(d=>d.week===w&&d.channel==="Instagram").reduce((a,b)=>a+b.reach,0));
+  mkChart("c-weekly","line",{labels:["Week 1","Week 2","Week 3","Week 4"],datasets:[{
+    data:wkReach, borderColor:"#1F4E79", backgroundColor:"rgba(31,78,121,.1)",
+    fill:true, tension:.4, pointRadius:5, pointBackgroundColor:"#1F4E79"
+  }]},{...sc});
+
+  // Pillar distribution
+  const pillars=["Educate","Inspire","Engage","Promote"];
+  const pillarCounts=pillars.map(p=>f.filter(d=>d.pillar===p).length);
+  mkChart("c-pillar","doughnut",{labels:pillars,datasets:[{
+    data:pillarCounts, backgroundColor:pillars.map(p=>PILLAR_COLORS[p].bar),
+    hoverOffset:6, borderWidth:2
+  }]},{
+    plugins:{legend:{display:true,position:"bottom",labels:{font:{size:11},padding:12}}},
+    cutout:"55%"
+  });
+
+  // Weekly engagement
+  const wkEng=weeks.map(w=>f.filter(d=>d.week===w&&d.channel==="Instagram").reduce((a,b)=>a+b.eng,0));
+  mkChart("c-engweek","bar",{labels:["Week 1","Week 2","Week 3","Week 4"],datasets:[{
+    data:wkEng, backgroundColor:["#1F4E79","#2E75B6","#7B2D8B","#E91E8C"], borderRadius:6
+  }]},{...sc});
+
+  // Pillar bars
+  const maxReach=Math.max(...pillars.map(p=>Math.max(...ALL_CONTENT.filter(d=>d.pillar===p).map(d=>d.reach),1)),1);
+  document.getElementById("pillar-bars").innerHTML = pillars.map(p=>{
+    const posts=f.filter(d=>d.pillar===p);
+    if(!posts.length) return "";
+    const avgR=Math.round(posts.reduce((a,b)=>a+b.reach,0)/posts.length);
+    const avgE=Math.round(posts.filter(d=>d.eng>0).reduce((a,b)=>a+b.eng,0)/Math.max(posts.filter(d=>d.eng>0).length,1));
+    const c=PILLAR_COLORS[p];
+    return `<div class="pillar-row">
+      <div class="p-label" style="color:${c.text}">${p}</div>
+      <div class="p-outer"><div class="p-inner" style="width:${Math.min((avgR/maxReach*100),100).toFixed(0)}%;background:${c.bar}">${fmt(avgR)} avg reach</div></div>
+      <div class="p-stats">${posts.length} posts &nbsp;|&nbsp; ${fmt(avgE)} avg eng.</div>
+    </div>`;
+  }).join("");
+
+  // Calendar
+  const dayNames=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+  const cal=document.getElementById("cal-grid");
+  const firstDay=new Date("2026-04-01").getDay();
+  let html=dayNames.map(d=>`<div class="cal-day-hdr">${d}</div>`).join("");
+  for(let i=0;i<firstDay;i++) html+=`<div class="cal-day empty"></div>`;
+  for(let day=1;day<=30;day++){
+    const dateStr=`Apr ${day}`;
+    const posts=f.filter(d=>d.date===dateStr);
+    html+=`<div class="cal-day"><div class="day-num">${day}</div>${posts.map(p=>{
+      const c=PILLAR_COLORS[p.pillar];
+      return `<div class="cal-post" style="background:${c.bg};color:${c.text}" title="${p.title}">${p.channel.substring(0,2)} · ${p.title.substring(0,14)}…</div>`;
+    }).join("")}</div>`;
+  }
+  cal.innerHTML=html;
+
+  // Table
+  const tbody=document.getElementById("content-tbody");
+  const noData=document.getElementById("no-data");
+  if(!f.length){tbody.innerHTML="";noData.style.display="block";}
+  else{
+    noData.style.display="none";
+    tbody.innerHTML=f.map(d=>`<tr>
+      <td>Wk ${d.week}</td>
+      <td>${d.date}</td>
+      <td><span class="badge ${CH_BADGE[d.channel]||'b-ig'}">${d.channel}</span></td>
+      <td>${d.title}</td>
+      <td><span class="badge ${PIL_BADGE[d.pillar]}">${d.pillar}</span></td>
+      <td style="font-size:11px;color:#666">${d.format}</td>
+      <td><span class="badge b-pub">Published</span></td>
+    </tr>`).join("");
+  }
+}
+
+function setupChips(id,setter){
+  document.getElementById(id).querySelectorAll(".chip").forEach(c=>{
+    c.addEventListener("click",()=>{
+      document.getElementById(id).querySelectorAll(".chip").forEach(x=>x.classList.remove("active"));
+      c.classList.add("active");
+      setter(c.dataset.val);
+      update();
+    });
+  });
+}
+
+setupChips("channel-chips", v=>selChannel=v);
+setupChips("pillar-chips",  v=>selPillar=v);
+setupChips("week-chips",    v=>selWeek=v);
+
+document.getElementById("reset-btn").addEventListener("click",()=>{
+  selChannel="all"; selPillar="all"; selWeek="all";
+  ["channel-chips","pillar-chips","week-chips"].forEach(id=>{
+    const cs=document.getElementById(id).querySelectorAll(".chip");
+    cs.forEach(c=>c.classList.remove("active"));
+    cs[0].classList.add("active");
+  });
+  update();
+});
+
+update();
+</script>
+</body>
+</html>
